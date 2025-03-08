@@ -13,6 +13,8 @@ export class ProductListComponent implements OnInit{
 
   products: Product[] = [];
   currentCategoryId: number= 1;
+  currentCategoryName: string= "";
+
   constructor(private productService: ProductService,
               private route: ActivatedRoute){}
 
@@ -35,9 +37,11 @@ export class ProductListComponent implements OnInit{
       this.currentCategoryId = +this.route.snapshot.paramMap.get('id')!;
       // Parameter valu is returned a string, Use the '+' symbol to convert it into the number.
       // '!' -> Non-null assertion operator. tells the compiler that the object is not null. 
+      this.currentCategoryName = this.route.snapshot.paramMap.get('name')!;
     } else {
       this.currentCategoryId = 1;
       // default value 1.
+      this.currentCategoryName = 'Books';
     }
 
     this.productService.getProductList(this.currentCategoryId).subscribe(
