@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../common/product';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-product-list',
@@ -11,14 +12,35 @@ import { Product } from '../../common/product';
 export class ProductListComponent implements OnInit{
 
   products: Product[] = [];
-  constructor(private productService: ProductService){}
+  currentCategoryId: number= 1;
+  constructor(private productService: ProductService,
+              private route: ActivatedRoute){}
 
   ngOnInit(): void {
-    this.listProducts();
+    this.route.paramMap.subscribe(() => {
+      this.listProducts();
+    });
   }
 
   listProducts() {
-    this.productService.getProductList().subscribe(
+
+    const hasCategoryId: boolean = this.route.snapshot.paramMap.has('id');
+    // .route: use the activated route
+    // .snapshot: state of route at this given moment in time
+    // .paramMap: Map of all the route parameters
+    // .has('id'): read the id parameter
+
+    if(hasCategoryId){
+      // get the "id" param string. convert string to a number using the + symbol.
+      this.currentCategoryId = +this.route.snapshot.paramMap.get('id')!;
+      // Parameter valu is returned a string, Use the '+' symbol to convert it into the number.
+      // '!' -> Non-null assertion operator. tells the compiler that the object is not null. 
+    } else {
+      this.currentCategoryId = 1;
+      // default value 1.
+    }
+
+    this.productService.getProductList(this.currentCategoryId).subscribe(
       data => {
         this.products = data;
       }
