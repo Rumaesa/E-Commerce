@@ -14,6 +14,7 @@ export class ProductListComponent implements OnInit{
   products: Product[] = [];
   currentCategoryId: number= 1;
   currentCategoryName: string= "";
+  searchMode: boolean = false;
 
   constructor(private productService: ProductService,
               private route: ActivatedRoute){}
@@ -25,6 +26,24 @@ export class ProductListComponent implements OnInit{
   }
 
   listProducts() {
+    this.searchMode = this.route.snapshot.paramMap.has('keyword');
+    if(this.searchMode){
+      this.handleSeachProducts();
+    }else{
+      this.handleListProducts();
+    }
+  }
+
+  handleSeachProducts() {
+    const theKeyword: string = this.route.snapshot.paramMap.get('keyword')!;
+    this.productService.searchProduct(theKeyword).subscribe(
+      data => {
+        this.products = data;
+      }
+    )
+  }
+
+  handleListProducts(){
 
     const hasCategoryId: boolean = this.route.snapshot.paramMap.has('id');
     // .route: use the activated route
@@ -32,7 +51,7 @@ export class ProductListComponent implements OnInit{
     // .paramMap: Map of all the route parameters
     // .has('id'): read the id parameter
 
-    if(hasCategoryId){
+    if (hasCategoryId) {
       // get the "id" param string. convert string to a number using the + symbol.
       this.currentCategoryId = +this.route.snapshot.paramMap.get('id')!;
       // Parameter valu is returned a string, Use the '+' symbol to convert it into the number.

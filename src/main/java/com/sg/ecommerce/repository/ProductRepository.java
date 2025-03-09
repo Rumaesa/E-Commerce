@@ -22,4 +22,5 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 //	all the methods starts with findBy,readBy, and queryBy are called as Query Methods and they are exposed as /search/<<queryMethodName>>
 //	e.g: findByCategoryId() -> http://localhost:8080/api/products/search/findByCategoryId
 	
+	Page<Product> findByNameContaining(@Param("name") String name, Pageable pageable);
 }
