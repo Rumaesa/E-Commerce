@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../common/product';
 import { ActivatedRoute } from '@angular/router';
+import { dateTimestampProvider } from 'rxjs/internal/scheduler/dateTimestampProvider';
+import { keyframes } from '@angular/animations';
 
 @Component({
   selector: 'app-product-list',
@@ -13,8 +15,15 @@ export class ProductListComponent implements OnInit{
 
   products: Product[] = [];
   currentCategoryId: number= 1;
+  previousCategoryId: number = 1;
   currentCategoryName: string= "";
+  previousKeyWord: string = "";
   searchMode: boolean = false;
+
+  // pagination properties:
+  thePageNumber:number = 1;
+  thePageSize: number = 5;
+  theTotalElement: number = 0;
 
   constructor(private productService: ProductService,
               private route: ActivatedRoute){}
@@ -36,11 +45,18 @@ export class ProductListComponent implements OnInit{
 
   handleSeachProducts() {
     const theKeyword: string = this.route.snapshot.paramMap.get('keyword')!;
-    this.productService.searchProduct(theKeyword).subscribe(
-      data => {
-        this.products = data;
-      }
-    )
+    
+    // if we have a different keyword than previous, then set thePageNumber to 1.
+    if(this.previousKeyWord != theKeyword){
+      this.thePageNumber = 1;
+    }
+
+    this.previousKeyWord = theKeyword;
+
+
+    this.productService.searchProductPaginate(this.thePageNumber - 1,
+                                              this.thePageSize,
+                                              theKeyword).subscribe(this.processResult());
   }
 
   handleListProducts(){
@@ -63,12 +79,36 @@ export class ProductListComponent implements OnInit{
       this.currentCategoryName = 'Books';
     }
 
-    this.productService.getProductList(this.currentCategoryId).subscribe(
-      data => {
-        this.products = data;
-      }
-    )
+    // check if we have a different category id than previous.
+    // Note: Angular will reuse a component if it is currently being viewed.
+
+    // if we have a different category id than previous, then set thePageNumber back to 1.
+    if(this.previousCategoryId != this.currentCategoryId){
+      this.thePageNumber= 1;
+    }
+
+    this.previousCategoryId = this.currentCategoryId;
+
+    this.productService.getProductListPaginate(this.thePageNumber - 1,
+                                               this.thePageSize,
+                                               this.currentCategoryId).subscribe(
+                                                this.processResult()
+                                               );
   }
 
+  updatePageSize(pageSize: string) {
+    this.thePageSize = +pageSize;
+    this.thePageNumber = 1;
+    this.listProducts();
+  }
+
+  processResult(){
+    return (data: any) => {
+      this.products = data._embedded.products;
+      this.thePageNumber = data.page.number + 1;
+      this.thePageSize = data.page.size;
+      this.theTotalElement = data.page.totalElements;
+    }
+  }
 
 }
