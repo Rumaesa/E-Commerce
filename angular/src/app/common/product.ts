@@ -4,7 +4,7 @@ export class Product {
     public sku: string,
     public name: string,
     public description: string,
-    public unitPrice: string,
+    public unitPrice: number,
     public imageUrl: string,
     public active: string,
     public unitsInStock: string,
